@@ -1,36 +1,82 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# TypingJoy — Typing Tutor App
 
-## Getting Started
+TypingJoy is a warm, calm, and playful typing tutor CRUD web application built with Next.js, Tailwind CSS, Prisma, and SQLite. It is designed to help users learn touch typing through structured lessons, practice custom texts, and track their real-time typing metrics and progress history.
 
-First, run the development server:
+## Technology Stack
 
+- **Framework**: [Next.js](https://nextjs.org/) (App Router, Turbopack)
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/)
+- **Database ORM**: [Prisma](https://www.prisma.io/)
+- **Database**: SQLite (via `@prisma/adapter-better-sqlite3` and `better-sqlite3`)
+- **Validation**: [Zod](https://zod.dev/)
+- **Language**: TypeScript
+
+## Project Structure
+
+- `app/` — Next.js routing, pages, layouts, and API/Server actions integration.
+  - `lessons/` — CRUD pages for touch typing lessons.
+  - `custom-texts/` — CRUD pages for user's custom practice texts.
+  - `practice/[id]/` — Live keyboard typing tutor interface, tracking real-time WPM, accuracy, progress, and saving typing session statistics.
+  - `progress/` — User statistics dashboard and complete practice sessions log.
+- `src/` — Clean architecture layers containing core, domain, infrastructure, and ui.
+  - `core/actions/` — Server actions orchestrating domain actions with database queries.
+  - `domain/` — Pure business logic, calculations, Zod schemas, and types.
+  - `infrastructure/` — Database adapter singleton configurations.
+  - `ui/components/` — Reusable components and form handlers.
+- `prisma/` — Database schemas, SQLite migrations, and starter seeds.
+
+## Setup Instructions
+
+### 1. Prerequisites
+- **Node.js**: v20 or higher is recommended.
+- **npm** (comes with Node.js)
+
+### 2. Install Dependencies
+Clone the repository and install npm packages:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 3. Environment Variables
+Create a `.env` file in the root directory (if not already present):
+```env
+DATABASE_URL="file:./dev.db"
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 4. Database Setup & Migrations
+Sync the SQLite database schema and run the migrations:
+```bash
+npx prisma migrate dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 5. Seed the Database
+Populate starter beginner-level typing lessons:
+```bash
+npx tsx prisma/seed.ts
+```
 
-## Learn More
+### 6. Run the Development Server
+Start the Next.js development server:
+```bash
+npm run dev
+```
+Open [http://localhost:3000](http://localhost:3000) in your web browser.
 
-To learn more about Next.js, take a look at the following resources:
+## Build and Check Commands
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **Production Build**: Compiles Next.js for production deployment.
+  ```bash
+  npm run build
+  ```
+- **Type Check**: Validates TypeScript code type-safety.
+  ```bash
+  npx tsc --noEmit
+  ```
+- **Code Lint**: Scans for patterns and syntax recommendations.
+  ```bash
+  npm run lint
+  ```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Known Limitations
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Browser Context**: Desktop keyboard touch typing is first-class. Real-time visual keystroke detection relies on keyboard events, which are not suitable for mobile virtual/on-screen keyboards.

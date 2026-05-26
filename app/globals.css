@@ -1,26 +1,115 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+body {
+  background: linear-gradient(135deg, #fff7ed, #fffbeb, #f5f5f4);
+  min-height: 100vh;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+.float-animation {
+  animation: float 3s ease-in-out infinite;
+}
+
+.char-correct {
+  @apply text-green-600 bg-green-50;
+}
+
+.char-incorrect {
+  @apply text-red-600 bg-red-50 underline decoration-red-500;
+}
+
+.char-current {
+  @apply text-amber-600 bg-amber-50 border-b-2 border-amber-500;
+}
+
+/* Custom scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d4a574;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #b8865a;
+}
+
+/* Input focus ring */
+input:focus,
+textarea:focus,
+select:focus {
+  @apply ring-2 ring-amber-400 ring-offset-2 outline-none;
+}
+
+/* Utility classes */
+.warm-card {
+  @apply bg-white/70 backdrop-blur-sm rounded-xl shadow-sm border border-amber-200/50;
+}
+
+.warm-card-hover {
+  @apply bg-white/70 backdrop-blur-sm rounded-xl shadow-sm border border-amber-200/50
+         hover:bg-white/90 hover:shadow-md hover:border-amber-300/60 transition-all duration-200;
+}
+
+.warm-button {
+  @apply bg-amber-600 text-white px-6 py-2.5 rounded-lg font-medium
+         hover:bg-amber-700 active:bg-amber-800
+         transition-all duration-150 shadow-sm hover:shadow-md;
+}
+
+.warm-button-secondary {
+  @apply bg-amber-50 text-amber-700 px-6 py-2.5 rounded-lg font-medium
+         border border-amber-200 hover:bg-amber-100 active:bg-amber-200
+         transition-all duration-150;
+}
+
+.warm-input {
+  @apply bg-white/80 border border-amber-200 rounded-lg px-4 py-2.5
+         text-stone-700 placeholder:text-stone-400
+         focus:border-amber-400 focus:ring-2 focus:ring-amber-400/30
+         transition-all duration-150;
+}
+
+.warm-text {
+  @apply text-stone-600;
+}
+
+.warm-heading {
+  @apply text-amber-800 font-bold;
+}
+
+.warm-gradient-text {
+  @apply bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent;
+}
+
+.warm-divider {
+  @apply border-t border-amber-200/60 my-6;
+}
+
+/* Stats cards */
+.stat-card {
+  @apply bg-white/70 backdrop-blur-sm rounded-xl shadow-sm border border-amber-200/50 p-6 text-center;
+}
+
+.stat-value {
+  @apply text-3xl font-bold text-amber-700;
+}
+
+.stat-label {
+  @apply text-sm text-stone-500 mt-1;
 }
