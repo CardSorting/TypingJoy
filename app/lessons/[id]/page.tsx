@@ -9,6 +9,7 @@ import { db } from '@/src/infrastructure/db';
 import { getLesson } from '@/src/core/actions/lessons';
 import EditLessonWrapper from '@/src/ui/components/EditLessonWrapper';
 import DeleteLessonWrapper from '@/src/ui/components/DeleteLessonWrapper';
+import AppLayout from '@/src/ui/components/AppLayout';
 
 interface LessonDetailPageProps {
   params: Promise<{ id: string }>;
@@ -53,7 +54,8 @@ export default async function LessonDetailPage({ params }: LessonDetailPageProps
   }
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-8">
+    <AppLayout>
+      <div className="max-w-3xl mx-auto">
       {/* Back to Lessons */}
       <div className="mb-6">
         <Link
@@ -152,6 +154,7 @@ export default async function LessonDetailPage({ params }: LessonDetailPageProps
         </p>
         <DeleteLessonWrapper lessonId={lesson.id} />
       </div>
-    </div>
+      </div>
+    </AppLayout>
   );
 }

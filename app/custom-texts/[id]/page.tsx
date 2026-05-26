@@ -8,6 +8,7 @@ import { notFound } from 'next/navigation';
 import { getCustomText } from '@/src/core/actions/custom-texts';
 import EditCustomTextWrapper from '@/src/ui/components/EditCustomTextWrapper';
 import DeleteCustomTextWrapper from '@/src/ui/components/DeleteCustomTextWrapper';
+import AppLayout from '@/src/ui/components/AppLayout';
 
 interface CustomTextDetailPageProps {
   params: Promise<{ id: string }>;
@@ -29,7 +30,8 @@ export default async function CustomTextDetailPage({ params }: CustomTextDetailP
     : [];
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-8">
+    <AppLayout>
+      <div className="max-w-3xl mx-auto">
       {/* Back link */}
       <div className="mb-6">
         <Link
@@ -89,6 +91,7 @@ export default async function CustomTextDetailPage({ params }: CustomTextDetailP
         </p>
         <DeleteCustomTextWrapper textId={id} />
       </div>
-    </div>
+      </div>
+    </AppLayout>
   );
 }

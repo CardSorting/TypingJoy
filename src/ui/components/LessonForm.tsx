@@ -253,7 +253,7 @@ export default function LessonForm({
         <div className="text-center pt-2">
           <Link
             href="/lessons"
-            className="text-stone-400 hover:text-stone-600 text-sm underline font-semibold"
+            className="text-amber-700 hover:text-amber-800 text-sm underline font-semibold"
           >
             Cancel
           </Link>

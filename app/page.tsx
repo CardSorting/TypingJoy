@@ -1,291 +1,200 @@
 /**
  * [LAYER: UI]
- * HomePage — Calm learning hub for structured typing practice, trends, and mastery tracking.
+ * MarketingPage — Welcome landing page for TypingJoy Academy.
+ * Explains the cozy digital classroom concept, outlines structured typing units,
+ * previews student stats consoles, and guides new writers to enter the study desk.
  */
 
 import Link from "next/link";
-import { getDashboardStats } from "@/src/core/actions/stats";
-import DashboardCards from "@/src/ui/components/DashboardCards";
 
-export const dynamic = "force-dynamic";
-
-export default async function HomePage() {
-  const stats = await getDashboardStats();
-  const trendToneClass =
-    stats.recentTrend.tone === "improving"
-      ? "border-emerald-200 bg-emerald-50/40 text-emerald-900"
-      : stats.recentTrend.tone === "accuracy"
-        ? "border-sky-200 bg-sky-50/50 text-sky-950"
-        : stats.recentTrend.tone === "speed"
-          ? "border-amber-200 bg-amber-50/50 text-amber-950"
-          : "border-stone-200 bg-white/75 text-stone-700";
-
+export default function MarketingPage() {
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      <div className="mb-8 rounded-xl border border-amber-200/70 bg-amber-50/45 p-6">
-        <p className="text-xs font-semibold uppercase tracking-wide text-amber-800">
-          Daily typing practice
-        </p>
-        <h1 className="mt-1 text-3xl font-bold text-stone-900">TypingJoy</h1>
-        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-stone-600">
-          A calm place to build touch-typing accuracy, one focused practice at a time.
-        </p>
-      </div>
-
-      {stats.totalSessions === 0 ? (
-        <div className="mx-auto max-w-xl rounded-xl border border-amber-200 bg-white/85 p-8 text-center shadow-sm">
-          <h2 className="text-xl font-bold text-stone-900">Start with one short lesson</h2>
-          <p className="mt-3 text-sm leading-relaxed text-stone-600">
-            Rest your fingers on <strong>A S D F</strong> and <strong>J K L ;</strong>.
-            Your first session will unlock real progress and coaching from your own typing.
-          </p>
-          <Link href={stats.learningRecommendation?.href || "/lessons"} className="warm-button mt-6 inline-block">
-            {stats.learningRecommendation?.actionLabel || "Browse lessons"}
+    <div className="min-h-screen flex flex-col bg-[#fffdfa] text-stone-800 selection:bg-amber-100 selection:text-amber-900">
+      {/* Academy Header */}
+      <nav className="flex items-center justify-between bg-amber-50/60 backdrop-blur-xs border-b border-amber-100/60 px-6 py-4 sticky top-0 z-50">
+        <Link href="/" className="text-xl font-bold text-amber-800 flex items-center gap-2">
+          ⌨️ TypingJoy Academy
+        </Link>
+        <div className="flex items-center gap-6">
+          <Link href="/classroom-guide" className="hidden sm:inline-block text-xs font-semibold text-stone-600 hover:text-amber-800 transition">
+            Student manual
+          </Link>
+          <Link href="/dashboard" className="warm-button text-xs py-2 px-5">
+            Enter Study Desk →
           </Link>
         </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="md:col-span-2 space-y-6">
-            <h2 className="text-lg font-bold text-stone-800 border-b border-stone-100 pb-2">
-              Practice overview
-            </h2>
-            <DashboardCards stats={stats} />
+      </nav>
 
-            <div className="warm-card p-5">
-              <h3 className="font-bold text-stone-800 text-sm mb-2">7-day consistency</h3>
-              <p className="text-xs text-stone-500 mb-4 leading-relaxed">
-                Practiced <strong className="text-amber-800">{stats.consistencyDaysCount}</strong> of
-                the last 7 days. Short, accurate sessions are enough to keep the habit alive.
-              </p>
-              <div className="flex gap-2 justify-between max-w-xs mx-auto">
-                {stats.consistencyDays.map((day) => (
-                  <div key={day.dateLabel} className="flex flex-col items-center gap-1">
-                    <span className="text-[10px] text-stone-500 font-bold uppercase">
-                      {day.dayLabel}
-                    </span>
-                    <div
-                      className={`h-8 w-8 rounded-full border flex items-center justify-center text-xs font-semibold ${
-                        day.practiced
-                          ? "bg-amber-600 border-amber-700 text-white shadow-sm"
-                          : "bg-[#faf8f5] border-stone-200 text-stone-300"
-                      }`}
-                      aria-label={
-                        day.practiced
-                          ? `Practiced on ${day.dateLabel}`
-                          : `No practice on ${day.dateLabel}`
-                      }
-                    >
-                      {day.practiced ? "✓" : ""}
-                    </div>
-                  </div>
-                ))}
+      {/* Hero Section */}
+      <section className="max-w-4xl mx-auto px-6 py-12 md:py-20 text-center space-y-6">
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100/70 border border-amber-200 text-xs font-bold text-amber-800">
+          🏫 A cozy digital typing school
+        </span>
+        <h1 className="text-4xl md:text-5xl font-extrabold text-stone-900 tracking-tight leading-tight max-w-2xl mx-auto">
+          Learn touch typing, <br />
+          <span className="font-serif-academy italic text-amber-800 font-normal">one calm reach</span> at a time.
+        </h1>
+        <p className="max-w-xl mx-auto text-base text-stone-600 leading-relaxed">
+          TypingJoy is a patient, supportive typing school designed to build muscle memory without gamer pressure, speed counters, or noise. Go slow to go fast.
+        </p>
+        <div className="flex flex-col sm:flex-row justify-center gap-4 pt-4">
+          <Link href="/dashboard" className="warm-button text-sm">
+            Begin Practice
+          </Link>
+          <Link href="/classroom-guide" className="warm-button-secondary text-sm">
+            Read Guide First
+          </Link>
+        </div>
+
+        {/* Tactile Preview Card */}
+        <div className="pt-8 max-w-3xl mx-auto">
+          <div className="warm-card p-6 bg-white shadow-md border border-amber-200/50 flex flex-col items-center">
+            <div className="w-full flex items-center justify-between border-b border-stone-100 pb-3 mb-4 text-xs text-stone-400">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-red-400" />
+                <span className="w-2.5 h-2.5 rounded-full bg-yellow-400" />
+                <span className="w-2.5 h-2.5 rounded-full bg-green-400" />
               </div>
+              <span>Typing Surface — Focus Unit active</span>
+              <span>18 WPM · 98% Accuracy</span>
             </div>
-
-            <div className={`rounded-xl border p-5 ${trendToneClass}`}>
-              <h3 className="font-bold text-sm mb-1">{stats.recentTrend.label}</h3>
-              <p className="text-xs font-medium leading-relaxed">{stats.recentTrend.detail}</p>
-              <p className="mt-3 text-[11px] text-stone-500">
-                WPM trend: {stats.recentTrendWpm > 0 ? "+" : ""}
-                {stats.recentTrendWpm}. Accuracy trend:{" "}
-                {stats.recentAccuracyTrend > 0 ? "+" : ""}
-                {stats.recentAccuracyTrend}%.
-              </p>
+            <div className="font-mono text-xl tracking-wider leading-relaxed bg-stone-50 p-6 rounded-lg text-stone-500 w-full text-center whitespace-pre-wrap select-none border border-stone-100">
+              <span className="text-emerald-800 bg-emerald-50 px-0.5 rounded">a</span>
+              <span className="text-emerald-800 bg-emerald-50 px-0.5 rounded">s</span>
+              <span className="text-emerald-800 bg-emerald-50 px-0.5 rounded">d</span>
+              <span className="text-emerald-800 bg-emerald-50 px-0.5 rounded">f</span>
+              <span> </span>
+              <span className="text-stone-900 bg-amber-100 outline outline-2 outline-amber-600 px-0.5 rounded font-bold">j</span>
+              <span>k l ; a s d f j k l ;</span>
             </div>
+            <p className="text-xs text-amber-700/80 font-medium mt-4">
+              ⌨️ Tactile feedback indicators guide your index anchors onto the Home Row (F and J).
+            </p>
+          </div>
+        </div>
+      </section>
 
-            {stats.bestSession && (
-              <div className="warm-card p-5 border-emerald-200 bg-emerald-50/25">
-                <h3 className="font-bold text-emerald-900 text-sm mb-2">
-                  Personal best with high accuracy
-                </h3>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-bold text-stone-800 text-sm">
-                      {stats.bestSession.title}
-                    </p>
-                    <p className="text-[10px] text-stone-400 mt-0.5">
-                      {new Date(stats.bestSession.completedAt).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-lg font-extrabold text-green-700 font-mono">
-                      {stats.bestSession.wpm} <span className="text-xs font-normal">WPM</span>
-                    </p>
-                    <p className="text-xs text-green-600 font-medium">
-                      {stats.bestSession.accuracy}% accuracy
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
+      {/* Pedagogy Pillars */}
+      <section className="bg-amber-50/20 border-y border-amber-200/30 py-16">
+        <div className="max-w-4xl mx-auto px-6">
+          <div className="text-center max-w-md mx-auto mb-12">
+            <h2 className="text-2xl font-bold text-stone-900">Our Touch Typing Philosophy</h2>
+            <p className="text-xs text-stone-500 mt-2">
+              Unlike arcade games that induce rush errors, TypingJoy builds calm, clean precision.
+            </p>
           </div>
 
-          <div className="space-y-6">
-            {stats.learningRecommendation && (
-              <div>
-                <h2 className="text-lg font-bold text-stone-800 border-b border-stone-100 pb-2 mb-3">
-                  Next step
-                </h2>
-                <div className="warm-card p-5 bg-amber-50/35 border-amber-300 flex flex-col justify-between h-auto">
-                  <div>
-                    <h3 className="font-bold text-stone-800 text-base mb-1">
-                      {stats.learningRecommendation.title}
-                    </h3>
-                    <p className="text-xs text-stone-600 mb-4 leading-relaxed">
-                      {stats.learningRecommendation.reason}
-                    </p>
-                  </div>
-                  <Link
-                    href={stats.learningRecommendation.href}
-                    className="warm-button text-center w-full block text-xs"
-                  >
-                    {stats.learningRecommendation.actionLabel}
-                  </Link>
-                </div>
-              </div>
-            )}
-
-            <div>
-              <h2 className="text-lg font-bold text-stone-800 border-b border-stone-100 pb-2 mb-3">
-                Tactile coaching & diagnostics
-              </h2>
-              <div className="warm-card p-5 bg-yellow-50/20 border-yellow-200 border">
-                {stats.weakKeyAdvice.length > 0 ? (
-                  <div className="space-y-4">
-                    {/* Weak keys list */}
-                    <div>
-                      <p className="text-xs text-stone-600 mb-3 font-semibold uppercase tracking-wider text-stone-500">
-                        Intended keys most missed (last 10 completed)
-                      </p>
-                      <div className="space-y-3">
-                        {stats.weakKeyAdvice.map((advice, idx) => (
-                          <div
-                            key={idx}
-                            className="flex flex-col gap-1 text-xs border-b border-stone-200/40 pb-2 last:border-0 last:pb-0"
-                          >
-                            <div className="flex justify-between items-center">
-                              <span>
-                                Key{" "}
-                                <strong className="text-amber-800 font-mono text-sm bg-white px-1.5 py-0.5 rounded border border-amber-200/60">
-                                  &apos;{advice.key}&apos;
-                                </strong>
-                              </span>
-                              <span className="text-[10px] text-stone-400 font-mono">
-                                {advice.count} misses
-                              </span>
-                            </div>
-                            <div className="text-stone-600 font-medium text-[10px]">
-                              {advice.finger} · {advice.region}
-                            </div>
-                            <div className="text-stone-500 text-[10px] leading-relaxed">
-                              {advice.advice}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Keyboard region weakness */}
-                    {stats.regionWeakness && (
-                      <div className="border-t border-stone-200/50 pt-3 text-xs">
-                        <p className="font-semibold text-stone-700 flex items-center gap-1 mb-1">
-                          <span aria-hidden="true">🗺️</span> Region Weakness
-                        </p>
-                        <p className="text-stone-600 leading-relaxed">
-                          Your weakest region is the <strong className="text-amber-800">{stats.regionWeakness.region.replace("-", " ")}</strong> ({stats.regionWeakness.percentage}% of misses).
-                        </p>
-                        <p className="text-[10px] text-stone-500 leading-relaxed mt-0.5">
-                          {stats.regionWeakness.advice}
-                        </p>
-                      </div>
-                    )}
-
-                    {/* Confusion Zones */}
-                    {stats.confusionZones.length > 0 && (
-                      <div className="border-t border-stone-200/50 pt-3 text-xs">
-                        <p className="font-semibold text-stone-700 flex items-center gap-1 mb-2">
-                          <span aria-hidden="true">🔄</span> Confusion Zones
-                        </p>
-                        <div className="space-y-2">
-                          {stats.confusionZones.map((cz, index) => (
-                            <div key={index} className="text-stone-600 text-[11px]">
-                              <p className="leading-relaxed">
-                                You often type <strong className="font-mono text-amber-800 bg-white px-1 rounded border border-amber-200/40">&apos;{cz.typed}&apos;</strong> instead of <strong className="font-mono text-amber-800 bg-white px-1 rounded border border-amber-200/40">&apos;{cz.expected}&apos;</strong>.
-                              </p>
-                              <p className="text-[10px] text-stone-500 leading-relaxed mt-0.5">{cz.advice}</p>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Accuracy Drift */}
-                    {stats.accuracyDrift && (
-                      <div className="border-t border-stone-200/50 pt-3 text-xs">
-                        <p className="font-semibold text-stone-700 flex items-center gap-1 mb-1">
-                          <span aria-hidden="true">📈</span> Accuracy Drift
-                        </p>
-                        <p className="text-stone-600 leading-relaxed">
-                          {stats.accuracyDrift.message}
-                        </p>
-                      </div>
-                    )}
-
-                    {/* Consistency Trend */}
-                    {stats.consistencyTrend && (
-                      <div className="border-t border-stone-200/50 pt-3 text-xs">
-                        <p className="font-semibold text-stone-700 flex items-center gap-1 mb-1">
-                          <span aria-hidden="true">⏱️</span> Consistency Trend
-                        </p>
-                        <p className="text-stone-600 leading-relaxed">
-                          {stats.consistencyTrend.message}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <p className="text-xs text-stone-600 leading-relaxed">
-                    Finish a practice session and this card will show real key-specific coaching from your typed text.
-                  </p>
-                )}
-              </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="space-y-3">
+              <div className="text-3xl">🏠</div>
+              <h3 className="font-bold text-stone-800 text-base">Home Row Anchors</h3>
+              <p className="text-xs text-stone-600 leading-relaxed">
+                Learn to rest your hands naturally and return to the anchor ridges (F and J) after every reach. Everything starts home.
+              </p>
             </div>
+            <div className="space-y-3">
+              <div className="text-3xl">🧠</div>
+              <h3 className="font-bold text-stone-800 text-base">Tactile Diagnostics</h3>
+              <p className="text-xs text-stone-600 leading-relaxed">
+                TypingJoy analyzes your typed patterns, mapping weak keys, region drifts, and common confusion zones (like confusing E with I).
+              </p>
+            </div>
+            <div className="space-y-3">
+              <div className="text-3xl">🛡️</div>
+              <h3 className="font-bold text-stone-800 text-base">Emotionally Safe</h3>
+              <p className="text-xs text-stone-600 leading-relaxed">
+                No ticking timers or loud sirens when you make mistakes. We measure consistency and accuracy. Slow down to succeed.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
 
-            <div>
-              <h2 className="text-lg font-bold text-stone-800 border-b border-stone-100 pb-2 mb-3">
-                Keyboard mastery
-              </h2>
-              <div className="warm-card p-5 space-y-4">
-                {stats.focusMastery.map((mastery) => {
-                  const percent =
-                    mastery.totalCount > 0
-                      ? Math.round((mastery.passedCount / mastery.totalCount) * 100)
-                      : 0;
-
-                  return (
-                    <div key={mastery.category} className="space-y-1.5">
-                      <div className="flex justify-between text-xs font-medium text-stone-600">
-                        <span className="capitalize">
-                          {mastery.category.replace("-", " ")}
-                        </span>
-                        <span>
-                          {mastery.passedCount}/{mastery.totalCount} passed
-                        </span>
-                      </div>
-                      <div className="w-full bg-stone-100 rounded-full h-2">
-                        <div
-                          className="bg-amber-500 h-2 rounded-full transition-all duration-300"
-                          style={{ width: `${percent}%` }}
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
+      {/* Curriculum Path Explain */}
+      <section className="max-w-4xl mx-auto px-6 py-16 space-y-12">
+        <div className="flex flex-col md:flex-row gap-8 items-center">
+          <div className="flex-1 space-y-4">
+            <span className="text-[10px] font-bold text-amber-800 uppercase tracking-widest bg-amber-100 px-2 py-0.5 rounded">
+              Curriculum Units
+            </span>
+            <h2 className="text-3xl font-extrabold text-stone-900 leading-tight">
+              A structured roadmap <br />
+              from foundations to speed.
+            </h2>
+            <p className="text-xs text-stone-600 leading-relaxed">
+              Our lessons are partitioned into sequential stages. Complete a lesson with at least <strong className="text-amber-800">90% accuracy</strong> to unlock the next reach milestone.
+            </p>
+            <ul className="space-y-2 text-xs text-stone-600">
+              <li className="flex items-center gap-2">
+                <span className="text-amber-500">🟤</span> <strong>Level 1 Foundations:</strong> Rest and anchor on Home Row.
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-amber-500">🟡</span> <strong>Level 2 Reaches:</strong> Vertical extensions to Top Row.
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-amber-500">🟢</span> <strong>Level 3 Confidence:</strong> Slide extensions to Bottom Row.
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-amber-500">🔵</span> <strong>Level 4 Expansion:</strong> Numbers, shifts, and code symbols.
+              </li>
+            </ul>
+            <div className="pt-2">
+              <Link href="/dashboard" className="warm-button text-xs">
+                Browse Curriculum Path
+              </Link>
+            </div>
+          </div>
+          <div className="flex-1 w-full">
+            <div className="warm-card p-6 bg-white shadow-sm border border-stone-200/50 space-y-4">
+              <p className="text-xs font-bold text-stone-400 uppercase tracking-wider">
+                Roadmap Preview
+              </p>
+              <div className="space-y-3">
+                <div className="border border-stone-200/60 rounded-lg p-3 bg-stone-50 flex items-center justify-between">
+                  <div>
+                    <h4 className="text-xs font-bold text-stone-700">1. Home Row Basics</h4>
+                    <p className="text-[10px] text-stone-400">Keys: A S D F J K L ;</p>
+                  </div>
+                  <span className="text-xs text-green-600 font-bold">Passed ⭐</span>
+                </div>
+                <div className="border border-stone-200/60 rounded-lg p-3 bg-stone-50 flex items-center justify-between">
+                  <div>
+                    <h4 className="text-xs font-bold text-stone-700">2. Top Row Reach</h4>
+                    <p className="text-[10px] text-stone-400">Keys: Q W E R T Y U I O P</p>
+                  </div>
+                  <span className="text-xs text-amber-600 font-bold">Current Target 🎯</span>
+                </div>
+                <div className="border border-stone-200/60 rounded-lg p-3 bg-stone-50/50 opacity-50 flex items-center justify-between select-none">
+                  <div>
+                    <h4 className="text-xs font-bold text-stone-700">3. Bottom Row Strength</h4>
+                    <p className="text-[10px] text-stone-400">Keys: Z X C V B N M</p>
+                  </div>
+                  <span className="text-xs text-stone-400">Locked 🔒</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      )}
+      </section>
+
+      {/* Decorative Mock Quotes Section */}
+      <section className="bg-stone-50 border-t border-stone-200/40 py-16 text-center">
+        <div className="max-w-2xl mx-auto px-6 space-y-6">
+          <p className="text-xs text-stone-500 font-bold uppercase tracking-widest">
+            A Supportive Scribe Community
+          </p>
+          <blockquote className="text-lg text-stone-700 italic font-serif-academy leading-relaxed">
+            &ldquo;TypingJoy feels like sitting in a quiet, sunlit library with a patient instructor. I stopped looking at my keyboard in less than a week.&rdquo;
+          </blockquote>
+          <p className="text-xs text-stone-500 font-semibold">— Classroom Student Log</p>
+        </div>
+      </section>
+
+      {/* Academy Footer */}
+      <footer className="bg-stone-100 border-t border-stone-200 py-12 text-center text-xs text-stone-400 space-y-2 mt-auto">
+        <p>⌨️ TypingJoy Academy &mdash; Dedicated to patient tactile learning.</p>
+        <p className="opacity-70">SQLite &middot; Next.js 16 &middot; Tailwind CSS</p>
+      </footer>
     </div>
   );
 }

@@ -4,6 +4,7 @@
 import Link from 'next/link';
 import { getSessions } from '@/src/core/actions/sessions';
 import { formatDuration } from '@/src/domain/calculations';
+import AppLayout from '@/src/ui/components/AppLayout';
 
 export const dynamic = 'force-dynamic';
 
@@ -36,36 +37,69 @@ export default async function ProgressPage() {
       : 0;
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold text-stone-800 mb-6">Your Progress</h1>
+    <AppLayout>
+      <div className="max-w-4xl mx-auto space-y-6">
+        {/* Page Header */}
+        <div className="border-b border-stone-100 pb-4">
+          <h1 className="text-2xl font-bold text-amber-800">📓 Progress Journal</h1>
+          <p className="text-xs text-stone-500 mt-1">
+            Reflect on your writing practice logs, speed curves, and tactile precision over time.
+          </p>
+        </div>
 
       {totalSessions === 0 ? (
-        <div className="text-center py-16 text-stone-500">
+        <div className="warm-card p-12 text-center text-stone-500 max-w-md mx-auto">
           <div className="text-5xl mb-4">📊</div>
-          <p className="text-lg mb-4">
-            No progress yet. Complete a lesson to start tracking!
+          <h2 className="text-lg font-bold text-stone-900 mb-2">No drills recorded yet</h2>
+          <p className="text-xs text-stone-600 mb-6 leading-relaxed">
+            Your personal campus learning journal is currently blank! Put your fingers on the anchor keys and complete a practice milestone to start tracking metrics.
           </p>
           <Link
             href="/lessons"
-            className="bg-amber-500 hover:bg-amber-600 text-white rounded-xl px-4 py-2 inline-block"
+            className="warm-button text-xs py-2 px-5 inline-block"
           >
-            Browse Lessons
+            Browse Academy Curriculum
           </Link>
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-3 gap-4 mb-8">
-            <div className="stat-card">
-              <div className="stat-value text-stone-800">{totalSessions}</div>
-              <div className="stat-label">Total Sessions</div>
+          {/* Scribe Reflections & General Stats Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Stat Cards */}
+            <div className="md:col-span-2 grid grid-cols-3 gap-4">
+              <div className="warm-card p-4 flex flex-col justify-between">
+                <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider">Milestones</span>
+                <div className="text-2xl font-bold text-stone-850 font-mono mt-2">{totalSessions} drills</div>
+                <span className="text-[9px] text-stone-500 mt-1">Total sessions</span>
+              </div>
+              <div className="warm-card p-4 flex flex-col justify-between">
+                <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider">Average Speed</span>
+                <div className="text-2xl font-bold text-amber-800 font-mono mt-2">{avgWpm} WPM</div>
+                <span className="text-[9px] text-stone-500 mt-1">Words per minute</span>
+              </div>
+              <div className="warm-card p-4 flex flex-col justify-between">
+                <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider">Precision</span>
+                <div className="text-2xl font-bold text-emerald-800 font-mono mt-2">{avgAccuracy}%</div>
+                <span className="text-[9px] text-stone-500 mt-1">Overall accuracy</span>
+              </div>
             </div>
-            <div className="stat-card">
-              <div className="stat-value text-amber-600">{avgWpm}</div>
-              <div className="stat-label">Average WPM</div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-value text-green-600">{avgAccuracy}%</div>
-              <div className="stat-label">Average Accuracy</div>
+
+            {/* Scribe Reflections */}
+            <div className="warm-card p-4 bg-amber-50/10 border-amber-300/40 text-xs flex flex-col justify-between">
+              <div>
+                <h4 className="font-bold text-amber-800 flex items-center gap-1.5 mb-1.5">
+                  📝 Scribe Reflection
+                </h4>
+                <p className="text-[11px] text-stone-600 leading-relaxed italic">
+                  &ldquo;Touch typing is not a race. It is the practice of resting and reaching with calm control. Your ledger indicates steady muscle memory development. Keep your wrists floating and shoulders relaxed.&rdquo;
+                </p>
+              </div>
+              <Link
+                href="/dashboard"
+                className="text-amber-700 hover:text-amber-800 underline font-semibold text-[10px] block mt-3"
+              >
+                Analyze keyboard reach diagnostics →
+              </Link>
             </div>
           </div>
 
@@ -122,6 +156,7 @@ export default async function ProgressPage() {
           </div>
         </>
       )}
-    </div>
+      </div>
+    </AppLayout>
   );
 }
