@@ -121,27 +121,31 @@ export default function LessonForm({
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Title */}
         <div>
-          <label className="block text-sm font-medium text-stone-700 mb-1">
+          <label htmlFor="lesson-title" className="block text-sm font-medium text-stone-700 mb-1">
             Title <span className="text-red-500">*</span>
           </label>
           <input
+            id="lesson-title"
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             className="warm-input w-full"
             required
+            aria-invalid={errors.title ? "true" : "false"}
+            aria-describedby={errors.title ? "lesson-title-error" : undefined}
           />
           {errors.title && (
-            <p className="text-red-500 text-sm mt-1">{errors.title}</p>
+            <p id="lesson-title-error" className="text-red-500 text-sm mt-1">{errors.title}</p>
           )}
         </div>
 
         {/* Description */}
         <div>
-          <label className="block text-sm font-medium text-stone-700 mb-1">
+          <label htmlFor="lesson-description" className="block text-sm font-medium text-stone-700 mb-1">
             Description
           </label>
           <textarea
+            id="lesson-description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={2}
@@ -152,10 +156,11 @@ export default function LessonForm({
         {/* Difficulty & Focus */}
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-stone-700 mb-1">
+            <label htmlFor="lesson-difficulty" className="block text-sm font-medium text-stone-700 mb-1">
               Difficulty
             </label>
             <select
+              id="lesson-difficulty"
               value={difficulty}
               onChange={(e) => setDifficulty(e.target.value as Difficulty)}
               className="warm-input w-full"
@@ -168,10 +173,11 @@ export default function LessonForm({
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-stone-700 mb-1">
+            <label htmlFor="lesson-focus" className="block text-sm font-medium text-stone-700 mb-1">
               Focus
             </label>
             <select
+              id="lesson-focus"
               value={focus}
               onChange={(e) => setFocus(e.target.value as Focus)}
               className="warm-input w-full"
@@ -190,36 +196,42 @@ export default function LessonForm({
 
         {/* Content */}
         <div>
-          <label className="block text-sm font-medium text-stone-700 mb-1">
+          <label htmlFor="lesson-content" className="block text-sm font-medium text-stone-700 mb-1">
             Content <span className="text-red-500">*</span>
           </label>
           <textarea
+            id="lesson-content"
             value={content}
             onChange={(e) => setContent(e.target.value)}
             rows={6}
             className="warm-input w-full font-mono"
             required
+            aria-invalid={errors.content ? "true" : "false"}
+            aria-describedby={errors.content ? "lesson-content-error" : undefined}
           />
           {errors.content && (
-            <p className="text-red-500 text-sm mt-1">{errors.content}</p>
+            <p id="lesson-content-error" className="text-red-500 text-sm mt-1">{errors.content}</p>
           )}
         </div>
 
         {/* Estimated Minutes */}
         <div>
-          <label className="block text-sm font-medium text-stone-700 mb-1">
+          <label htmlFor="lesson-minutes" className="block text-sm font-medium text-stone-700 mb-1">
             Estimated Minutes <span className="text-red-500">*</span>
           </label>
           <input
+            id="lesson-minutes"
             type="number"
             value={estimatedMinutes}
             onChange={(e) => setEstimatedMinutes(Number(e.target.value))}
             min={1}
             className="warm-input w-full"
             required
+            aria-invalid={errors.estimatedMinutes ? "true" : "false"}
+            aria-describedby={errors.estimatedMinutes ? "lesson-minutes-error" : undefined}
           />
           {errors.estimatedMinutes && (
-            <p className="text-red-500 text-sm mt-1">
+            <p id="lesson-minutes-error" className="text-red-500 text-sm mt-1">
               {errors.estimatedMinutes}
             </p>
           )}

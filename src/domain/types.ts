@@ -110,6 +110,32 @@ export interface WeakKeyAdvice {
   advice: string;
 }
 
+export interface AccuracyDriftInfo {
+  oldestAvg: number;
+  recentAvg: number;
+  drift: number;
+  message: string;
+}
+
+export interface ConfusionZoneInfo {
+  expected: string;
+  typed: string;
+  count: number;
+  advice: string;
+}
+
+export interface KeyboardRegionWeakness {
+  region: string;
+  count: number;
+  percentage: number;
+  advice: string;
+}
+
+export interface ConsistencyTrendInfo {
+  message: string;
+  variance: number;
+}
+
 export interface LearningRecommendation {
   title: string;
   reason: string;
@@ -143,4 +169,8 @@ export interface DashboardStats {
   consistencyDays: ConsistencyDay[];
   weakKeyAdvice: WeakKeyAdvice[];
   learningRecommendation: LearningRecommendation | null;
+  accuracyDrift: AccuracyDriftInfo | null;
+  confusionZones: ConfusionZoneInfo[];
+  regionWeakness: KeyboardRegionWeakness | null;
+  consistencyTrend: ConsistencyTrendInfo | null;
 }

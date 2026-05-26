@@ -5,7 +5,7 @@
 
 import { db } from "@/src/infrastructure/db";
 import {
-  getWeakKeyAdviceFromTexts,
+  computeTactileDiagnostics,
 } from "@/src/domain/calculations";
 import type {
   DashboardStats,
@@ -13,18 +13,40 @@ import type {
   RecentTrend,
 } from "@/src/domain/types";
 
+interface SessionWithDetails {
+  id: string;
+  lessonId: string | null;
+  customTextId: string | null;
+  typedText: string;
+  targetText: string;
+  wpm: number;
+  accuracy: number;
+  mistakes: number;
+  durationSeconds: number;
+  completedAt: Date;
+  lesson?: { id: string; title: string; focus: string } | null;
+  customText?: { id: string; title: string } | null;
+}
+
+interface LessonShort {
+  id: string;
+  title: string;
+  description: string;
+  focus: string;
+}
+
 export async function getDashboardStats(): Promise<DashboardStats> {
   // Fetch typing sessions
-  const sessions = await db.typingSession.findMany({
+  const sessions = (await db.typingSession.findMany({
     orderBy: { completedAt: "desc" },
     include: {
       lesson: { select: { id: true, title: true, focus: true } },
       customText: { select: { id: true, title: true } },
     },
-  });
+  })) as unknown as SessionWithDetails[];
 
   // Fetch all lessons to compute focus area totals
-  const allLessons = await db.lesson.findMany({
+  const allLessons = (await db.lesson.findMany({
     orderBy: { createdAt: "asc" },
     select: {
       id: true,
@@ -32,11 +54,11 @@ export async function getDashboardStats(): Promise<DashboardStats> {
       description: true,
       focus: true,
     },
-  });
+  })) as unknown as LessonShort[];
 
   // 1. Initialize empty focus mastery groups
   const masteryGroups: Record<string, { passed: Set<string>; total: Set<string> }> = {};
-  allLessons.forEach((l) => {
+  allLessons.forEach((l: LessonShort) => {
     if (!masteryGroups[l.focus]) {
       masteryGroups[l.focus] = { passed: new Set(), total: new Set() };
     }
@@ -78,13 +100,17 @@ export async function getDashboardStats(): Promise<DashboardStats> {
               actionLabel: "Start first lesson",
             }
           : null,
+      accuracyDrift: null,
+      confusionZones: [],
+      regionWeakness: null,
+      consistencyTrend: null,
     };
   }
 
   // Calculate basic aggregate metrics
-  const totalWpm = sessions.reduce((sum, s) => sum + s.wpm, 0);
-  const totalAccuracy = sessions.reduce((sum, s) => sum + s.accuracy, 0);
-  const bestWpm = Math.max(...sessions.map((s) => s.wpm));
+  const totalWpm = sessions.reduce((sum: number, s: SessionWithDetails) => sum + s.wpm, 0);
+  const totalAccuracy = sessions.reduce((sum: number, s: SessionWithDetails) => sum + s.accuracy, 0);
+  const bestWpm = Math.max(...sessions.map((s: SessionWithDetails) => s.wpm));
 
   // 2. Calculate WPM Trend (last 5 sessions vs all older sessions)
   let recentTrendWpm = 0;
@@ -94,12 +120,12 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     const recent = sessions.slice(0, half);
     const older = sessions.slice(half);
 
-    const recentAvg = recent.reduce((sum, s) => sum + s.wpm, 0) / recent.length;
-    const olderAvg = older.reduce((sum, s) => sum + s.wpm, 0) / older.length;
+    const recentAvg = recent.reduce((sum: number, s: SessionWithDetails) => sum + s.wpm, 0) / recent.length;
+    const olderAvg = older.reduce((sum: number, s: SessionWithDetails) => sum + s.wpm, 0) / older.length;
     const recentAccuracyAvg =
-      recent.reduce((sum, s) => sum + s.accuracy, 0) / recent.length;
+      recent.reduce((sum: number, s: SessionWithDetails) => sum + s.accuracy, 0) / recent.length;
     const olderAccuracyAvg =
-      older.reduce((sum, s) => sum + s.accuracy, 0) / older.length;
+      older.reduce((sum: number, s: SessionWithDetails) => sum + s.accuracy, 0) / older.length;
     recentTrendWpm = Math.round((recentAvg - olderAvg) * 10) / 10;
     recentAccuracyTrend = Math.round((recentAccuracyAvg - olderAccuracyAvg) * 10) / 10;
   }
@@ -131,7 +157,7 @@ export async function getDashboardStats(): Promise<DashboardStats> {
   }
 
   // 3. Identify the Best Session (accuracy >= 90% and highest WPM)
-  const passedSessions = sessions.filter((s) => s.accuracy >= 90.0);
+  const passedSessions = sessions.filter((s: SessionWithDetails) => s.accuracy >= 90.0);
   let bestSession = null;
   if (passedSessions.length > 0) {
     const top = [...passedSessions].sort((a, b) => b.wpm - a.wpm)[0];
@@ -144,7 +170,7 @@ export async function getDashboardStats(): Promise<DashboardStats> {
   }
 
   // 4. Compute Category/Focus Mastery Progress
-  sessions.forEach((s) => {
+  sessions.forEach((s: SessionWithDetails) => {
     if (s.lessonId && s.accuracy >= 90.0 && s.lesson) {
       const focus = s.lesson.focus;
       if (!masteryGroups[focus]) {
@@ -163,34 +189,34 @@ export async function getDashboardStats(): Promise<DashboardStats> {
 
   // 5. Calculate consistency rating (active practice days in last 7 days)
   const consistencyDays = getLastSevenConsistencyDays(
-    sessions.map((session) => session.completedAt),
+    sessions.map((session: SessionWithDetails) => session.completedAt),
   );
   const consistencyDaysCount = consistencyDays.filter((day) => day.practiced).length;
 
-  // 6. Calculate tactile character-level mistake advice from the last 10 sessions
+  // 6. Calculate tactile diagnostics from the last 10 completed sessions
   const lastTen = sessions.slice(0, 10);
-  const weakKeyAdvice = getWeakKeyAdviceFromTexts(lastTen, 3);
+  const diagnostics = computeTactileDiagnostics(lastTen, 3);
 
   const completedLessonIds = new Set(
     sessions
-      .filter((session) => session.lessonId && session.accuracy >= 90)
-      .map((session) => session.lessonId),
+      .filter((session: SessionWithDetails) => session.lessonId && session.accuracy >= 90)
+      .map((session: SessionWithDetails) => session.lessonId as string),
   );
   const latestSession = sessions[0];
   const recentThree = sessions.slice(0, 3);
   const recentAverageAccuracy =
-    recentThree.reduce((sum, session) => sum + session.accuracy, 0) /
+    recentThree.reduce((sum: number, session: SessionWithDetails) => sum + session.accuracy, 0) /
     recentThree.length;
   const recentAverageWpm =
-    recentThree.reduce((sum, session) => sum + session.wpm, 0) /
+    recentThree.reduce((sum: number, session: SessionWithDetails) => sum + session.wpm, 0) /
     recentThree.length;
 
   const firstUncompleted = allLessons.find(
-    (lesson) => !completedLessonIds.has(lesson.id),
+    (lesson: LessonShort) => !completedLessonIds.has(lesson.id),
   );
-  const repeatedWeakRegion = weakKeyAdvice[0]?.region.toLowerCase() || "";
+  const repeatedWeakRegion = diagnostics.regionWeakness?.region.toLowerCase() || "";
   const regionLesson = allLessons.find(
-    (lesson) =>
+    (lesson: LessonShort) =>
       lesson.focus !== "mixed" &&
       repeatedWeakRegion.includes(lesson.focus.replace("-", " ")) &&
       !completedLessonIds.has(lesson.id),
@@ -198,7 +224,14 @@ export async function getDashboardStats(): Promise<DashboardStats> {
 
   let learningRecommendation: LearningRecommendation | null = null;
 
-  if (latestSession.lessonId && latestSession.accuracy < 90 && latestSession.lesson) {
+  if (recentAverageWpm > 28 && recentAverageAccuracy < 90 && latestSession.lessonId && latestSession.lesson) {
+    learningRecommendation = {
+      title: latestSession.lesson.title,
+      reason: "You are typing quickly, but speed without accuracy builds unstable habits. Repeat this lesson slowly to prioritize clean reaches.",
+      href: `/practice/${latestSession.lessonId}`,
+      actionLabel: "Slow down and repeat",
+    };
+  } else if (latestSession.lessonId && latestSession.accuracy < 90 && latestSession.lesson) {
     learningRecommendation = {
       title: latestSession.lesson.title,
       reason: "Repeat this lesson slowly to strengthen accuracy before adding speed.",
@@ -212,12 +245,27 @@ export async function getDashboardStats(): Promise<DashboardStats> {
       href: `/practice/${latestSession.lessonId}`,
       actionLabel: "Practice accuracy",
     };
+  } else if (diagnostics.regionWeakness?.region === "home-row" && allLessons.find((l: LessonShort) => l.focus === "home-row")) {
+    const homeRowLesson = allLessons.find((l: LessonShort) => l.focus === "home-row")!;
+    learningRecommendation = {
+      title: homeRowLesson.title,
+      reason: "Your recent sessions show frequent home-row misses. Re-ground your fingers on the anchor keys with home-row practice.",
+      href: `/practice/${homeRowLesson.id}`,
+      actionLabel: "Practice home row",
+    };
   } else if (regionLesson) {
     learningRecommendation = {
       title: regionLesson.title,
       reason: `Your recent misses point toward ${regionLesson.focus.replace("-", " ")} practice.`,
       href: `/practice/${regionLesson.id}`,
       actionLabel: "Practice this focus",
+    };
+  } else if (diagnostics.consistencyTrend && diagnostics.consistencyTrend.variance < 2.0 && recentAverageAccuracy >= 93.0 && firstUncompleted) {
+    learningRecommendation = {
+      title: firstUncompleted.title,
+      reason: "Your accuracy is highly consistent and stable. You are ready to progress to the next focus area.",
+      href: `/practice/${firstUncompleted.id}`,
+      actionLabel: "Progress to next lesson",
     };
   } else if (recentAverageAccuracy >= 95 && recentAverageWpm < 20 && firstUncompleted) {
     learningRecommendation = {
@@ -236,9 +284,9 @@ export async function getDashboardStats(): Promise<DashboardStats> {
   } else {
     learningRecommendation = {
       title: "Custom practice",
-      reason: "You have passed the current lesson set. Use custom text to practice real words at a comfortable pace.",
+      reason: "You have passed the structured curriculum! Solidify your muscle memory by practicing real-world paragraphs with custom texts.",
       href: "/custom-texts",
-      actionLabel: "Choose custom text",
+      actionLabel: "Practice custom text",
     };
   }
 
@@ -254,8 +302,12 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     focusMastery,
     consistencyDaysCount,
     consistencyDays,
-    weakKeyAdvice,
+    weakKeyAdvice: diagnostics.weakKeys,
     learningRecommendation,
+    accuracyDrift: diagnostics.accuracyDrift,
+    confusionZones: diagnostics.confusionZones,
+    regionWeakness: diagnostics.regionWeakness,
+    consistencyTrend: diagnostics.consistencyTrend,
   };
 }
 

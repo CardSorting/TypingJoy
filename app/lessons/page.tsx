@@ -83,20 +83,20 @@ export default async function LessonsPage({ searchParams }: LessonsPageProps) {
   if (lastSession && lastSession.lessonId && lastSession.accuracy < 90) {
     // Recommendation: Repeat the failed lesson
     recommendedLesson = lessonsWithProgress.find((l) => l.id === lastSession.lessonId) || null;
-    recommendationReason = '🔄 Repeat practice recommended to build accuracy (Aim for 90%+)';
+    recommendationReason = 'Repeat practice recommended to build accuracy (aim for 90%+)';
   } else {
     // Recommendation: Find the first uncompleted lesson
     const firstUncompleted = lessonsWithProgress.find((l) => !l.completed);
     if (firstUncompleted) {
       recommendedLesson = firstUncompleted;
       recommendationReason = firstUncompleted.unlocked
-        ? '🚀 Recommended next step in your progression'
-        : '🔒 Recommended lesson (complete previous lessons to unlock)';
+        ? 'Recommended next step in your progression'
+        : 'Complete previous lessons to unlock';
     } else if (lessonsWithProgress.length > 0) {
       // Recommendation: Repeat the slowest completed lesson to build speed
       const sortedBySpeed = [...lessonsWithProgress].sort((a, b) => a.bestWpm - b.bestWpm);
       recommendedLesson = sortedBySpeed[0];
-      recommendationReason = '🏆 All lessons completed! Practice your slowest lesson to build speed';
+      recommendationReason = 'All lessons completed. Practice your slowest one to build relaxed speed.';
     }
   }
 

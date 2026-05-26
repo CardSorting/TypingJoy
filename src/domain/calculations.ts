@@ -465,3 +465,181 @@ export function summarizeTypingResult(accuracy: number, wpm: number): string {
 
   return "This text needs a gentler pass. Pause before the tricky keys and let your hands reset.";
 }
+
+function normalizeRegionName(region: string): string {
+  const lower = region.toLowerCase();
+  if (lower.includes("home")) return "home-row";
+  if (lower.includes("top")) return "top-row";
+  if (lower.includes("bottom")) return "bottom-row";
+  if (lower.includes("number")) return "numbers";
+  return "symbols";
+}
+
+export function computeTactileDiagnostics(
+  sessions: Array<{ typedText: string; targetText: string; accuracy: number }>,
+  limit = 3,
+) {
+  if (sessions.length === 0) {
+    return {
+      weakKeys: [],
+      accuracyDrift: null,
+      confusionZones: [],
+      regionWeakness: null,
+      consistencyTrend: null,
+    };
+  }
+
+  const mistakeCounts = new Map<string, number>();
+  const confusionCounts = new Map<string, { expected: string; typed: string; count: number }>();
+  const regionMistakes = new Map<string, number>();
+  let totalMistakesCount = 0;
+
+  sessions.forEach((session) => {
+    const perSessionKeyCounts = new Map<string, number>();
+    const perSessionConfusionCounts = new Map<string, number>();
+
+    const mistakesList = getCharacterMistakes(session.typedText, session.targetText);
+
+    mistakesList.forEach((mistake) => {
+      const exp = mistake.expected;
+      const typ = mistake.typed ? normalizeExpectedKey(mistake.typed) || mistake.typed : "";
+
+      perSessionKeyCounts.set(exp, (perSessionKeyCounts.get(exp) || 0) + 1);
+
+      if (typ && exp !== typ) {
+        const pairKey = `${exp}->${typ}`;
+        perSessionConfusionCounts.set(pairKey, (perSessionConfusionCounts.get(pairKey) || 0) + 1);
+      }
+    });
+
+    perSessionKeyCounts.forEach((count, key) => {
+      const capped = Math.min(count, 3);
+      mistakeCounts.set(key, (mistakeCounts.get(key) || 0) + capped);
+
+      const metadata = describeKey(key);
+      const regionName = normalizeRegionName(metadata.region);
+      regionMistakes.set(regionName, (regionMistakes.get(regionName) || 0) + capped);
+      totalMistakesCount += capped;
+    });
+
+    perSessionConfusionCounts.forEach((count, pairKey) => {
+      const capped = Math.min(count, 2);
+      const [exp, typ] = pairKey.split("->");
+      const existing = confusionCounts.get(pairKey) || { expected: exp, typed: typ, count: 0 };
+      existing.count += capped;
+      confusionCounts.set(pairKey, existing);
+    });
+  });
+
+  const weakKeys = Array.from(mistakeCounts.entries())
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .slice(0, limit)
+    .map(([key, count]) => {
+      const metadata = describeKey(key);
+      return {
+        key: displayKeyLabel(key),
+        count,
+        finger: metadata.finger,
+        region: metadata.region,
+        advice: metadata.advice,
+      };
+    });
+
+  let regionWeakness = null;
+  if (totalMistakesCount > 0 && regionMistakes.size > 0) {
+    const sortedRegions = Array.from(regionMistakes.entries()).sort((a, b) => b[1] - a[1]);
+    const [weakestRegion, count] = sortedRegions[0];
+    const percentage = Math.round((count / totalMistakesCount) * 100);
+
+    const regionAdvices: Record<string, string> = {
+      "home-row": "Your home-row positioning has been slightly unstable. Focus on keeping your index fingers lightly resting on the F and J bumps.",
+      "top-row": "Reaching for the top row is causing off-target presses. Try lifting your fingers cleanly without letting your wrist shift forward.",
+      "bottom-row": "Bottom-row reaches are dragging. Keep your wrists relaxed and drop your fingers downward with light taps.",
+      "numbers": "The number row reaches are currently less accurate. Settle your hands and pause briefly before extending upward.",
+      "symbols": "Punctuation and symbols are disrupting your flow. Slow down your keystrokes when modifiers (like Shift) are required.",
+    };
+
+    regionWeakness = {
+      region: weakestRegion,
+      count,
+      percentage,
+      advice: regionAdvices[weakestRegion] || "Focus on maintaining clean reaches and returning to the home row.",
+    };
+  }
+
+  const confusionZones = Array.from(confusionCounts.values())
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 2)
+    .map((cz) => {
+      const expLabel = displayKeyLabel(cz.expected);
+      const typLabel = displayKeyLabel(cz.typed);
+      let advice = `You typed '${typLabel}' when expecting '${expLabel}' ${cz.count} times. Pause slightly before these reaches to reinforce the pattern.`;
+      if (cz.expected === "e" && cz.typed === "i") {
+        advice = "You frequently typed 'i' instead of 'e'. Watch the left middle finger (E) vs right middle finger (I) coordination.";
+      } else if (cz.expected === "i" && cz.typed === "e") {
+        advice = "You frequently typed 'e' instead of 'i'. Watch the right middle finger (I) vs left middle finger (E) coordination.";
+      } else if (cz.expected === "m" && cz.typed === "n") {
+        advice = "You frequently typed 'n' instead of 'm'. Practice the bottom-row reaches from J to N (left reach) and M (right reach) carefully.";
+      } else if (cz.expected === "n" && cz.typed === "m") {
+        advice = "You frequently typed 'm' instead of 'n'. Practice the bottom-row reaches from J to N (left reach) and M (right reach) carefully.";
+      }
+      return {
+        expected: expLabel,
+        typed: typLabel,
+        count: cz.count,
+        advice,
+      };
+    });
+
+  let accuracyDrift = null;
+  let consistencyTrend = null;
+
+  if (sessions.length >= 2) {
+    const half = Math.ceil(sessions.length / 2);
+    const recentSessions = sessions.slice(0, half);
+    const olderSessions = sessions.slice(half);
+
+    const recentAvg = Math.round((recentSessions.reduce((sum, s) => sum + s.accuracy, 0) / recentSessions.length) * 10) / 10;
+    const olderAvg = Math.round((olderSessions.reduce((sum, s) => sum + s.accuracy, 0) / olderSessions.length) * 10) / 10;
+    const drift = Math.round((recentAvg - olderAvg) * 10) / 10;
+
+    let message = `Your accuracy is holding steady at ${recentAvg}%. Focus on maintaining this quiet rhythm.`;
+    if (drift > 1.5) {
+      message = `Your accuracy is drifting upward by +${drift}%. Your steady pacing is paying off.`;
+    } else if (drift < -1.5) {
+      message = `Your accuracy has drifted down by ${Math.abs(drift)}%. Settle your fingers and slow down your pace to rebuild precision.`;
+    }
+
+    accuracyDrift = {
+      oldestAvg: olderAvg,
+      recentAvg: recentAvg,
+      drift,
+      message,
+    };
+
+    const accuracies = sessions.map((s) => s.accuracy);
+    const avg = accuracies.reduce((sum, acc) => sum + acc, 0) / accuracies.length;
+    const variance = accuracies.reduce((sum, acc) => sum + Math.pow(acc - avg, 2), 0) / accuracies.length;
+    const stdDev = Math.round(Math.sqrt(variance) * 10) / 10;
+
+    let consistencyMsg = "Consistent practice rhythm. Your muscle memory is stabilizing.";
+    if (stdDev < 2.0) {
+      consistencyMsg = "Highly stable rhythm (accuracy varies by less than 2% between sessions). Excellent control.";
+    } else if (stdDev >= 5.0) {
+      consistencyMsg = "Your accuracy is fluctuating between sessions. Try practicing with a steady, metronome-like beat to build consistency.";
+    }
+
+    consistencyTrend = {
+      message: consistencyMsg,
+      variance: stdDev,
+    };
+  }
+
+  return {
+    weakKeys,
+    accuracyDrift,
+    confusionZones,
+    regionWeakness,
+    consistencyTrend,
+  };
+}

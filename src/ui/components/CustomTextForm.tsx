@@ -87,44 +87,51 @@ export default function CustomTextForm({
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Title */}
         <div>
-          <label className="block text-sm font-medium text-stone-700 mb-1">
+          <label htmlFor="custom-text-title" className="block text-sm font-medium text-stone-700 mb-1">
             Title <span className="text-red-500">*</span>
           </label>
           <input
+            id="custom-text-title"
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             className="warm-input w-full"
             required
+            aria-invalid={errors.title ? "true" : "false"}
+            aria-describedby={errors.title ? "custom-text-title-error" : undefined}
           />
           {errors.title && (
-            <p className="text-red-500 text-sm mt-1">{errors.title}</p>
+            <p id="custom-text-title-error" className="text-red-500 text-sm mt-1">{errors.title}</p>
           )}
         </div>
 
         {/* Body */}
         <div>
-          <label className="block text-sm font-medium text-stone-700 mb-1">
+          <label htmlFor="custom-text-body" className="block text-sm font-medium text-stone-700 mb-1">
             Body <span className="text-red-500">*</span>
           </label>
           <textarea
+            id="custom-text-body"
             value={body}
             onChange={(e) => setBody(e.target.value)}
             rows={8}
             className="warm-input w-full font-mono"
             required
+            aria-invalid={errors.body ? "true" : "false"}
+            aria-describedby={errors.body ? "custom-text-body-error" : undefined}
           />
           {errors.body && (
-            <p className="text-red-500 text-sm mt-1">{errors.body}</p>
+            <p id="custom-text-body-error" className="text-red-500 text-sm mt-1">{errors.body}</p>
           )}
         </div>
 
         {/* Tags */}
         <div>
-          <label className="block text-sm font-medium text-stone-700 mb-1">
+          <label htmlFor="custom-text-tags" className="block text-sm font-medium text-stone-700 mb-1">
             Tags
           </label>
           <input
+            id="custom-text-tags"
             type="text"
             value={tags}
             onChange={(e) => setTags(e.target.value)}

@@ -1,13 +1,13 @@
 /**
- * [LAYER: PLUMBING]
+ * [LAYER: UI]
  */
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'TypingJoy - Learn to Type',
-  description: 'A warm, playful typing tutor app',
+  title: 'TypingJoy — Learn to Type with Calm Accuracy',
+  description: 'A warm, patient touch-typing tutor that helps you build accuracy through focused, gentle practice.',
 };
 
 export default function RootLayout({

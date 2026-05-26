@@ -14,10 +14,10 @@ import {
   countMistakes,
   displayKeyLabel,
   formatDuration,
-  getWeakKeyAdviceFromTexts,
+  computeTactileDiagnostics,
 } from "@/src/domain/calculations";
 import { createSession } from "@/src/core/actions/sessions";
-import type { WeakKeyAdvice } from "@/src/domain/types";
+import type { WeakKeyAdvice, KeyboardRegionWeakness, ConfusionZoneInfo } from "@/src/domain/types";
 import SessionSummary from "./SessionSummary";
 
 interface TypingEngineProps {
@@ -54,6 +54,8 @@ export default function TypingEngine({
   const [isPaused, setIsPaused] = useState(false);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [sessionWeakKeys, setSessionWeakKeys] = useState<WeakKeyAdvice[]>([]);
+  const [sessionRegionWeakness, setSessionRegionWeakness] = useState<KeyboardRegionWeakness | null>(null);
+  const [sessionConfusionZones, setSessionConfusionZones] = useState<ConfusionZoneInfo[]>([]);
   const [finalSummary, setFinalSummary] = useState<FinalSummary | null>(null);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -130,20 +132,21 @@ export default function TypingEngine({
         hasSavedRef.current = true;
         setIsFinished(true);
 
-        const finalElapsed = elapsedSeconds || 1; // prevent division by zero
+        const finalElapsed = elapsedSeconds || 1;
 
-        // Calculate final exact statistics
         const { mistakes, correctKeystrokes: correct } = countMistakes(
           nextValue,
           content,
         );
         const finalAccuracy = calcAccuracy(correct, nextValue.length);
         const finalWpm = calcWpm(correct, finalElapsed);
-        const weakKeys = getWeakKeyAdviceFromTexts(
-          [{ typedText: nextValue, targetText: content }],
+        const diagnostics = computeTactileDiagnostics(
+          [{ typedText: nextValue, targetText: content, accuracy: finalAccuracy }],
           3,
         );
-        setSessionWeakKeys(weakKeys);
+        setSessionWeakKeys(diagnostics.weakKeys);
+        setSessionRegionWeakness(diagnostics.regionWeakness);
+        setSessionConfusionZones(diagnostics.confusionZones);
         setFinalSummary({
           wpm: finalWpm,
           accuracy: finalAccuracy,
@@ -191,6 +194,8 @@ export default function TypingEngine({
     setIsPaused(false);
     setElapsedSeconds(0);
     setSessionWeakKeys([]);
+    setSessionRegionWeakness(null);
+    setSessionConfusionZones([]);
     setFinalSummary(null);
     hasSavedRef.current = false;
     setTimeout(() => {
@@ -220,7 +225,7 @@ export default function TypingEngine({
       )
         .sort()
         .slice(0, 14)
-        .join(" "),
+        .join(" \u00B7 "),
     [content],
   );
   const estimatedDuration = estimatedMinutes || Math.max(1, Math.ceil(content.length / 180));
@@ -230,6 +235,19 @@ export default function TypingEngine({
     typedText.length > 0 && typedText[typedText.length - 1] !== content[typedText.length - 1]
       ? displayKeyLabel(typedText[typedText.length - 1])
       : "";
+
+  // Derive a contextual keys-practiced description based on lesson focus
+  const keysPreview = useMemo(() => {
+    if (!lessonFocus || lessonFocus === "mixed") return null;
+    const regionDescription: Record<string, { keys: string; description: string }> = {
+      "home-row": { keys: "A S D F J K L ;", description: "Home row — rest your fingers here between each keystroke." },
+      "top-row": { keys: "Q W E R T Y U I O P", description: "Top row — reach up from the home row, then return." },
+      "bottom-row": { keys: "Z X C V B N M , . /", description: "Bottom row — drop down from the home row, then reset." },
+      numbers: { keys: "1 2 3 4 5 6 7 8 9 0", description: "Number row — stretch up with controlled finger reaches." },
+      symbols: { keys: "- = [ ] \\ ; ' , . /", description: "Symbols — slow down for reach and modifier combinations." },
+    };
+    return regionDescription[lessonFocus] || null;
+  }, [lessonFocus]);
 
   // Completed session card redirection
   if (isFinished && finalSummary) {
@@ -245,49 +263,33 @@ export default function TypingEngine({
         backUrl={customTextId ? "/custom-texts" : "/lessons"}
         backLabel={customTextId ? "Back to Custom Texts" : "Back to Lessons"}
         weakKeys={sessionWeakKeys}
+        lessonFocus={lessonFocus}
+        regionWeakness={sessionRegionWeakness}
+        confusionZones={sessionConfusionZones}
       />
     );
   }
 
   return (
     <div className="rounded-xl bg-white shadow-md p-6 max-w-3xl mx-auto border border-amber-100">
-      {!isStarted && (
-        <div className="warm-card p-5 bg-amber-50/30 border-amber-200 mb-6">
-          <p className="text-xs font-semibold uppercase tracking-wide text-amber-800">
-            Get ready
-          </p>
-          <h2 className="mt-1 font-bold text-stone-900 text-lg">{title}</h2>
-          <p className="mt-2 text-sm text-stone-600 leading-relaxed">
-            {lessonFocus ? `Focus: ${lessonFocus.replace("-", " ")}. ` : ""}
-            This practice should take about {estimatedDuration} minute{estimatedDuration === 1 ? "" : "s"}.
-          </p>
-          <div className="mt-4 rounded-lg border border-amber-200 bg-white/75 p-3 text-xs text-stone-600">
-            <p>
-              Home row: <strong className="font-mono text-stone-900">A S D F</strong>{" "}
-              and <strong className="font-mono text-stone-900">J K L ;</strong>.
-            </p>
-            {uniqueChars && <p className="mt-2">Keys practiced: {uniqueChars}</p>}
-          </div>
-          <div className="mt-4 text-xs font-semibold text-amber-800">
-            Start typing when you are settled. Accuracy comes first.
-          </div>
-        </div>
-      )}
-
       {/* Stats bar */}
       <div className="flex items-center justify-between mb-6 text-sm">
         <div className="flex gap-6">
           <div>
             <span className="text-stone-400">Speed:</span>{" "}
-            <strong className="font-bold text-stone-700 font-mono text-base">{wpm} WPM</strong>
+            <strong className="font-bold text-stone-700 font-mono text-base" aria-live="polite" aria-label={`${wpm} words per minute`}>{wpm} <span className="text-[10px] font-normal text-stone-400">WPM</span></strong>
           </div>
           <div>
             <span className="text-stone-400">Accuracy:</span>{" "}
-            <strong className="font-bold text-stone-700 font-mono text-base">{accuracy}%</strong>
+            <strong className="font-bold text-stone-700 font-mono text-base" aria-live="polite" aria-label={`${accuracy} percent accuracy`}>{accuracy}%</strong>
           </div>
           <div>
             <span className="text-stone-400">Mistakes:</span>{" "}
-            <strong className="font-bold text-red-600 font-mono text-base" aria-live="polite" aria-label={`${mistakeCount} mistakes`}>
+            <strong
+              className={`font-bold font-mono text-base ${mistakeCount > 5 ? "text-red-600" : "text-stone-700"}`}
+              aria-live="polite"
+              aria-label={`${mistakeCount} mistakes`}
+            >
               {mistakeCount}
             </strong>
           </div>
@@ -298,23 +300,18 @@ export default function TypingEngine({
       </div>
 
       {/* Progress bar */}
-      <div className="w-full bg-stone-100 rounded-full h-2 mb-6">
+      <div className="w-full bg-stone-100 rounded-full h-2 mb-6" role="progressbar" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100} aria-label={`${progress} percent complete`}>
         <div
-          className="bg-amber-500 h-2 rounded-full transition-all duration-200"
+          className="bg-amber-500 h-2 rounded-full transition-all duration-150"
           style={{ width: `${progress}%` }}
-          role="progressbar"
-          aria-valuenow={progress}
-          aria-valuemin={0}
-          aria-valuemax={100}
-          aria-label="Practice progression percentage"
         />
       </div>
 
       {/* Target text display wrapper */}
       <div className="relative">
-        <p className="sr-only" aria-live="polite">
+        <p className="sr-only" aria-live="polite" aria-atomic="true">
           Current expected key: {currentExpected}
-          {currentTyped ? `. Last typed key was ${currentTyped}, which does not match.` : ""}
+          {currentTyped ? `. Last typed key: ${currentTyped} — does not match.` : ""}
         </p>
         <div
           className={`typing-surface font-mono text-lg leading-8 mb-6 p-4 bg-stone-50 rounded-lg select-none transition-opacity duration-150 border border-stone-200/60 whitespace-pre-wrap ${
@@ -324,31 +321,33 @@ export default function TypingEngine({
           aria-hidden="true"
         >
           {content.split("").map((char, i) => {
-            let className = "";
-            let statusMark = "";
+            let className = "char-token";
 
             if (i < typedText.length) {
               if (typedText[i] === char) {
-                className = "char-token text-emerald-700 bg-emerald-50/80";
+                className += " char-correct";
               } else {
-                // Mistake character: Highlight visually and keep accessible
-                className = "char-token text-red-700 bg-red-50 border-b-2 border-red-600 font-bold";
-                statusMark = "!";
+                className += " char-incorrect";
               }
             } else if (i === typedText.length) {
-              // Cursor character
-              className = "char-token text-stone-950 bg-amber-200/90 outline outline-2 outline-amber-700 font-bold";
+              className += " char-current";
             } else {
-              className = "char-token text-stone-500";
+              className += " char-upcoming";
             }
 
-            // Render non-breaking space to prevent visual layout collapses/jitter on space spans
+            // Render non-breaking space to prevent visual layout collapse
             const displayChar = char === " " ? "\u00A0" : char;
 
             return (
-              <span key={i} className={className}>
-                {statusMark && <span className="char-status">{statusMark}</span>}
+              <span
+                key={i}
+                className={className}
+                aria-current={i === typedText.length ? "true" : undefined}
+              >
                 {displayChar}
+                {i < typedText.length && typedText[i] !== char && (
+                  <span className="sr-mistake-marker" aria-hidden="true">!</span>
+                )}
               </span>
             );
           })}
@@ -356,12 +355,13 @@ export default function TypingEngine({
 
         {/* Paused Screen Overlay */}
         {isPaused && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-stone-100/70 backdrop-blur-xs rounded-lg border border-amber-200">
-            <span className="text-stone-800 font-bold text-lg mb-2">⏸️ Practice Paused</span>
-            <p className="text-xs text-stone-500 mb-4">Click below or press Escape to resume typing.</p>
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-stone-100/70 backdrop-blur-xs rounded-lg border border-amber-200" role="dialog" aria-label="Practice paused">
+            <span className="text-stone-800 font-bold text-lg mb-2" aria-hidden="true">⏸️ Practice Paused</span>
+            <p className="text-xs text-stone-500 mb-4">Press <kbd className="bg-stone-100 text-stone-700 px-1.5 py-0.5 rounded border border-stone-300 font-sans text-[10px]">Esc</kbd> or click below to resume.</p>
             <button
               onClick={() => setIsPaused(false)}
               className="warm-button text-xs py-2 px-5"
+              aria-label="Resume typing practice"
             >
               Resume Practice
             </button>
@@ -381,34 +381,72 @@ export default function TypingEngine({
         autoCorrect="off"
         autoCapitalize="off"
         spellCheck="false"
-        aria-label="Typing input"
+        aria-label="Typing input — type the displayed text character by character"
         aria-describedby="typing-input-help"
         disabled={isPaused}
       />
 
-      {/* Control bar */}
-      <div className="flex justify-between items-center text-xs text-stone-400 mt-4 border-t border-stone-100 pt-4">
-        <div id="typing-input-help">
-          <span>Press </span>
-          <kbd className="bg-stone-100 text-stone-700 px-1.5 py-0.5 rounded border border-stone-300 font-sans text-[10px]">Esc</kbd>
-          <span> to pause or resume.</span>
-        </div>
-        <div className="flex gap-4">
-          {isStarted && (
-            <button
-              onClick={() => setIsPaused((p) => !p)}
-              className="text-amber-700 hover:text-amber-800 underline font-medium transition-colors"
-            >
-              {isPaused ? "Resume" : "Pause"}
-            </button>
-          )}
-          <button
-            onClick={handleReset}
-            className="text-stone-500 hover:text-stone-700 underline font-medium transition-colors"
-          >
-            Reset Practice
-          </button>
-        </div>
+      {/* Dynamic bottom area: Get Ready or Control bar */}
+      <div className="border-t border-stone-100 pt-4 mt-4">
+        {!isStarted ? (
+          <div className="warm-card p-5 border-amber-200">
+            <div className="flex items-start gap-3">
+              <span className="text-amber-600 text-base mt-0.5" aria-hidden="true">📖</span>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-semibold uppercase tracking-wide text-amber-700">
+                  Get ready
+                </p>
+                <h2 className="mt-0.5 font-bold text-stone-900 text-lg">{title}</h2>
+                <p className="mt-2 text-sm text-stone-600 leading-relaxed">
+                  {lessonFocus ? (
+                    <>Focus: <strong className="text-stone-800">{lessonFocus.replace(/-/g, " ")}</strong>. </>
+                  ) : ""}
+                  About {estimatedDuration} minute{estimatedDuration === 1 ? "" : "s"} at a relaxed pace.
+                </p>
+                {keysPreview ? (
+                  <div className="mt-3 rounded-lg border border-amber-200 bg-white/75 p-3 text-xs text-stone-600">
+                    <p className="font-mono text-amber-800 font-semibold tracking-wider">{keysPreview.keys}</p>
+                    <p className="mt-1 text-stone-500 leading-relaxed">{keysPreview.description}</p>
+                  </div>
+                ) : (
+                  uniqueChars && (
+                    <div className="mt-3 rounded-lg border border-amber-200 bg-white/75 p-3 text-xs text-stone-600">
+                      <p><span className="font-semibold text-stone-700">Practiced keys:</span> <span className="font-mono text-amber-800">{uniqueChars}</span></p>
+                    </div>
+                  )
+                )}
+                <div className="mt-3 text-xs font-medium text-amber-700">
+                  Accuracy comes first — speed grows naturally. Start typing when you are ready.
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="flex justify-between items-center text-xs text-stone-400">
+            <div id="typing-input-help">
+              <span>Press </span>
+              <kbd className="bg-stone-100 text-stone-700 px-1.5 py-0.5 rounded border border-stone-300 font-sans text-[10px]">Esc</kbd>
+              <span> to pause or resume.</span>
+            </div>
+            <div className="flex gap-4">
+              <button
+                onClick={() => setIsPaused((p) => !p)}
+                className="text-amber-700 hover:text-amber-800 underline font-medium transition-colors"
+                aria-expanded={isPaused}
+                aria-label={isPaused ? "Resume practice" : "Pause practice"}
+              >
+                {isPaused ? "Resume" : "Pause"}
+              </button>
+              <button
+                onClick={handleReset}
+                className="text-stone-500 hover:text-stone-700 underline font-medium transition-colors"
+                aria-label="Reset practice and start from the beginning"
+              >
+                Reset Practice
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -64,10 +64,10 @@ export default async function HomePage() {
                       {day.dayLabel}
                     </span>
                     <div
-                      className={`h-8 w-8 rounded-full border flex items-center justify-center text-xs font-bold ${
+                      className={`h-8 w-8 rounded-full border flex items-center justify-center text-xs font-semibold ${
                         day.practiced
-                          ? "bg-amber-600 border-amber-700 text-white"
-                          : "bg-white border-stone-200 text-stone-400"
+                          ? "bg-amber-600 border-amber-700 text-white shadow-sm"
+                          : "bg-[#faf8f5] border-stone-200 text-stone-300"
                       }`}
                       aria-label={
                         day.practiced
@@ -75,7 +75,7 @@ export default async function HomePage() {
                           : `No practice on ${day.dateLabel}`
                       }
                     >
-                      {day.practiced ? "Yes" : "No"}
+                      {day.practiced ? "✓" : ""}
                     </div>
                   </div>
                 ))}
@@ -147,41 +147,102 @@ export default async function HomePage() {
 
             <div>
               <h2 className="text-lg font-bold text-stone-800 border-b border-stone-100 pb-2 mb-3">
-                Weak-key coaching
+                Tactile coaching & diagnostics
               </h2>
-              <div className="warm-card p-5 bg-yellow-50/30 border-yellow-300/70 border">
+              <div className="warm-card p-5 bg-yellow-50/20 border-yellow-200 border">
                 {stats.weakKeyAdvice.length > 0 ? (
-                  <>
-                  <p className="text-xs text-stone-600 mb-4 leading-relaxed font-medium">
-                    These are the intended keys most often missed in your last 10 sessions.
-                  </p>
-                  <div className="space-y-3">
-                    {stats.weakKeyAdvice.map((advice, idx) => (
-                      <div
-                        key={idx}
-                        className="flex flex-col gap-1 text-xs border-b border-stone-200/40 pb-2 last:border-0 last:pb-0"
-                      >
-                        <div className="flex justify-between items-center">
-                          <span>
-                            Intended key{" "}
-                            <strong className="text-amber-800 font-mono text-sm bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200/60">
-                              &apos;{advice.key}&apos;
-                            </strong>
-                          </span>
-                          <span className="text-[10px] text-stone-400 font-mono">
-                            {advice.count} misses
-                          </span>
-                        </div>
-                        <div className="text-stone-600 font-medium text-[10px]">
-                          {advice.finger} · {advice.region}
-                        </div>
-                        <div className="text-stone-500 text-[10px] leading-relaxed">
-                          {advice.advice}
+                  <div className="space-y-4">
+                    {/* Weak keys list */}
+                    <div>
+                      <p className="text-xs text-stone-600 mb-3 font-semibold uppercase tracking-wider text-stone-500">
+                        Intended keys most missed (last 10 completed)
+                      </p>
+                      <div className="space-y-3">
+                        {stats.weakKeyAdvice.map((advice, idx) => (
+                          <div
+                            key={idx}
+                            className="flex flex-col gap-1 text-xs border-b border-stone-200/40 pb-2 last:border-0 last:pb-0"
+                          >
+                            <div className="flex justify-between items-center">
+                              <span>
+                                Key{" "}
+                                <strong className="text-amber-800 font-mono text-sm bg-white px-1.5 py-0.5 rounded border border-amber-200/60">
+                                  &apos;{advice.key}&apos;
+                                </strong>
+                              </span>
+                              <span className="text-[10px] text-stone-400 font-mono">
+                                {advice.count} misses
+                              </span>
+                            </div>
+                            <div className="text-stone-600 font-medium text-[10px]">
+                              {advice.finger} · {advice.region}
+                            </div>
+                            <div className="text-stone-500 text-[10px] leading-relaxed">
+                              {advice.advice}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Keyboard region weakness */}
+                    {stats.regionWeakness && (
+                      <div className="border-t border-stone-200/50 pt-3 text-xs">
+                        <p className="font-semibold text-stone-700 flex items-center gap-1 mb-1">
+                          <span aria-hidden="true">🗺️</span> Region Weakness
+                        </p>
+                        <p className="text-stone-600 leading-relaxed">
+                          Your weakest region is the <strong className="text-amber-800">{stats.regionWeakness.region.replace("-", " ")}</strong> ({stats.regionWeakness.percentage}% of misses).
+                        </p>
+                        <p className="text-[10px] text-stone-500 leading-relaxed mt-0.5">
+                          {stats.regionWeakness.advice}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Confusion Zones */}
+                    {stats.confusionZones.length > 0 && (
+                      <div className="border-t border-stone-200/50 pt-3 text-xs">
+                        <p className="font-semibold text-stone-700 flex items-center gap-1 mb-2">
+                          <span aria-hidden="true">🔄</span> Confusion Zones
+                        </p>
+                        <div className="space-y-2">
+                          {stats.confusionZones.map((cz, index) => (
+                            <div key={index} className="text-stone-600 text-[11px]">
+                              <p className="leading-relaxed">
+                                You often type <strong className="font-mono text-amber-800 bg-white px-1 rounded border border-amber-200/40">&apos;{cz.typed}&apos;</strong> instead of <strong className="font-mono text-amber-800 bg-white px-1 rounded border border-amber-200/40">&apos;{cz.expected}&apos;</strong>.
+                              </p>
+                              <p className="text-[10px] text-stone-500 leading-relaxed mt-0.5">{cz.advice}</p>
+                            </div>
+                          ))}
                         </div>
                       </div>
-                    ))}
+                    )}
+
+                    {/* Accuracy Drift */}
+                    {stats.accuracyDrift && (
+                      <div className="border-t border-stone-200/50 pt-3 text-xs">
+                        <p className="font-semibold text-stone-700 flex items-center gap-1 mb-1">
+                          <span aria-hidden="true">📈</span> Accuracy Drift
+                        </p>
+                        <p className="text-stone-600 leading-relaxed">
+                          {stats.accuracyDrift.message}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Consistency Trend */}
+                    {stats.consistencyTrend && (
+                      <div className="border-t border-stone-200/50 pt-3 text-xs">
+                        <p className="font-semibold text-stone-700 flex items-center gap-1 mb-1">
+                          <span aria-hidden="true">⏱️</span> Consistency Trend
+                        </p>
+                        <p className="text-stone-600 leading-relaxed">
+                          {stats.consistencyTrend.message}
+                        </p>
+                      </div>
+                    )}
                   </div>
-                  </>
                 ) : (
                   <p className="text-xs text-stone-600 leading-relaxed">
                     Finish a practice session and this card will show real key-specific coaching from your typed text.
