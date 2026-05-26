@@ -89,9 +89,58 @@ export type UpdateCustomTextInput = z.infer<typeof UpdateCustomTextInput>;
 
 // ─── Dashboard Stats (derived) ────────────────────────────
 
+export interface FocusMastery {
+  category: string;
+  passedCount: number;
+  totalCount: number;
+}
+
+export interface BestSessionInfo {
+  wpm: number;
+  accuracy: number;
+  completedAt: Date;
+  title: string;
+}
+
+export interface WeakKeyAdvice {
+  key: string;
+  count: number;
+  finger: string;
+  region: string;
+  advice: string;
+}
+
+export interface LearningRecommendation {
+  title: string;
+  reason: string;
+  href: string;
+  actionLabel: string;
+}
+
+export interface RecentTrend {
+  label: string;
+  detail: string;
+  tone: "steady" | "improving" | "accuracy" | "speed";
+}
+
+export interface ConsistencyDay {
+  dateLabel: string;
+  dayLabel: string;
+  practiced: boolean;
+}
+
 export interface DashboardStats {
   totalSessions: number;
   averageWpm: number;
   averageAccuracy: number;
   bestWpm: number;
+  recentTrendWpm: number;
+  recentAccuracyTrend: number;
+  recentTrend: RecentTrend;
+  bestSession: BestSessionInfo | null;
+  focusMastery: FocusMastery[];
+  consistencyDaysCount: number;
+  consistencyDays: ConsistencyDay[];
+  weakKeyAdvice: WeakKeyAdvice[];
+  learningRecommendation: LearningRecommendation | null;
 }

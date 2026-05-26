@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { getCustomTexts } from '@/src/core/actions/custom-texts';
 import { CustomPracticeText } from '@/src/domain/types';
 
+export const dynamic = 'force-dynamic';
+
 export default async function CustomTextsPage() {
   const texts = await getCustomTexts();
 

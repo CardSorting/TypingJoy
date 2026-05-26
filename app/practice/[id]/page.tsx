@@ -25,6 +25,9 @@ export default async function PracticePage({
           content={lesson.content}
           lessonId={lesson.id}
           title={lesson.title}
+          lessonFocus={lesson.focus}
+          estimatedMinutes={lesson.estimatedMinutes}
+          sourceLabel="Lesson"
         />
       </div>
     );
@@ -42,6 +45,7 @@ export default async function PracticePage({
           content={customText.body}
           customTextId={customText.id}
           title={customText.title}
+          sourceLabel="Custom practice"
         />
       </div>
     );

@@ -10,7 +10,7 @@ import type { Prisma } from "@prisma/client";
 
 export async function getLessons() {
   return db.lesson.findMany({
-    orderBy: { createdAt: "desc" },
+    orderBy: { createdAt: "asc" },
     include: { _count: { select: { sessions: true } } },
   });
 }

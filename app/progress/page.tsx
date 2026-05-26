@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { getSessions } from '@/src/core/actions/sessions';
 import { formatDuration } from '@/src/domain/calculations';
 
+export const dynamic = 'force-dynamic';
+
 interface SessionWithDetails {
   id: string;
   completedAt: Date;

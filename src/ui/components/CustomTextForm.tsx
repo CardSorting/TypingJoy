@@ -79,8 +79,8 @@ export default function CustomTextForm({
   }
 
   return (
-    <div className="rounded-xl bg-white shadow-lg p-6 max-w-xl mx-auto">
-      <h2 className="text-xl font-bold text-stone-800 mb-6">
+    <div className="warm-card p-6 max-w-xl mx-auto bg-white">
+      <h2 className="text-xl font-bold text-amber-800 mb-6">
         {isEdit ? "Edit Custom Text" : "Create Custom Text"}
       </h2>
 
@@ -94,7 +94,7 @@ export default function CustomTextForm({
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="w-full border border-stone-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+            className="warm-input w-full"
             required
           />
           {errors.title && (
@@ -111,7 +111,7 @@ export default function CustomTextForm({
             value={body}
             onChange={(e) => setBody(e.target.value)}
             rows={8}
-            className="w-full border border-stone-200 rounded-lg px-3 py-2 font-mono focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+            className="warm-input w-full font-mono"
             required
           />
           {errors.body && (
@@ -129,7 +129,7 @@ export default function CustomTextForm({
             value={tags}
             onChange={(e) => setTags(e.target.value)}
             placeholder="comma, separated"
-            className="w-full border border-stone-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+            className="warm-input w-full"
           />
         </div>
 
@@ -137,7 +137,7 @@ export default function CustomTextForm({
         <button
           type="submit"
           disabled={submitting}
-          className="w-full bg-amber-500 hover:bg-amber-600 disabled:bg-amber-300 text-white px-6 py-3 rounded-xl font-medium transition-colors"
+          className="warm-button w-full mt-6"
         >
           {submitting
             ? "Saving..."
@@ -146,10 +146,10 @@ export default function CustomTextForm({
               : "Create Text"}
         </button>
 
-        <div className="text-center">
+        <div className="text-center pt-2">
           <Link
             href="/custom-texts"
-            className="text-stone-400 hover:text-stone-600 text-sm underline"
+            className="text-stone-400 hover:text-stone-600 text-sm underline font-semibold"
           >
             Cancel
           </Link>

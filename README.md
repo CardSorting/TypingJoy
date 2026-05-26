@@ -1,82 +1,109 @@
-# TypingJoy — Typing Tutor App
+# ⌨️ TypingJoy — Typing Tutor App
 
-TypingJoy is a warm, calm, and playful typing tutor CRUD web application built with Next.js, Tailwind CSS, Prisma, and SQLite. It is designed to help users learn touch typing through structured lessons, practice custom texts, and track their real-time typing metrics and progress history.
+TypingJoy is a warm, calm, and playful touch-typing tutor built with Next.js 16, Tailwind CSS 4, Prisma 7, and SQLite. It helps users learn touch typing through structured lessons, custom practice texts, real-time typing metrics, and detailed progress tracking.
 
 ## Technology Stack
 
-- **Framework**: [Next.js](https://nextjs.org/) (App Router, Turbopack)
-- **Styling**: [Tailwind CSS](https://tailwindcss.com/)
-- **Database ORM**: [Prisma](https://www.prisma.io/)
+- **Framework**: [Next.js](https://nextjs.org/) 16 (App Router, Turbopack)
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/) 4
+- **Database ORM**: [Prisma](https://www.prisma.io/) 7
 - **Database**: SQLite (via `@prisma/adapter-better-sqlite3` and `better-sqlite3`)
-- **Validation**: [Zod](https://zod.dev/)
-- **Language**: TypeScript
+- **Validation**: [Zod](https://zod.dev/) 4
+- **Language**: TypeScript (strict mode)
+
+## Features
+
+- **Structured Lessons** — Progressive typing lessons organized by difficulty and focus area (home row, top row, bottom row, numbers, symbols, mixed)
+- **Sequential Unlock** — Lessons unlock in sequence when you achieve 90%+ accuracy on the previous lesson
+- **Custom Practice Texts** — Create, edit, and practice your own texts with optional tag categorization
+- **Real-Time Typing Engine** — Live WPM, accuracy, progress bar, and mistake tracking as you type
+- **Pause / Resume** — Press `Esc` to pause or resume practice at any time
+- **Session Persistence** — Every completed practice session is saved with full metrics
+- **Dashboard Analytics** — Aggregate statistics, WPM/accuracy trends, personal bests, and weak-key coaching
+- **7-Day Consistency** — Track practice frequency over the last week
+- **Smart Recommendations** — Adaptive suggestions based on recent performance and weak areas
+- **Finger-Placement Guidance** — Key-specific advice showing which finger to use and how to reach each character
+- **Supportive Feedback** — Encouraging completion summaries that prioritize accuracy over speed
+- **Accessible** — ARIA labels, keyboard focus rings, screen-reader announcements, semantic HTML
 
 ## Project Structure
 
-- `app/` — Next.js routing, pages, layouts, and API/Server actions integration.
-  - `lessons/` — CRUD pages for touch typing lessons.
-  - `custom-texts/` — CRUD pages for user's custom practice texts.
-  - `practice/[id]/` — Live keyboard typing tutor interface, tracking real-time WPM, accuracy, progress, and saving typing session statistics.
-  - `progress/` — User statistics dashboard and complete practice sessions log.
-- `src/` — Clean architecture layers containing core, domain, infrastructure, and ui.
-  - `core/actions/` — Server actions orchestrating domain actions with database queries.
-  - `domain/` — Pure business logic, calculations, Zod schemas, and types.
-  - `infrastructure/` — Database adapter singleton configurations.
-  - `ui/components/` — Reusable components and form handlers.
-- `prisma/` — Database schemas, SQLite migrations, and starter seeds.
+```
+app/                     — Next.js App Router pages
+├── lessons/             — Lesson CRUD pages
+├── custom-texts/        — Custom text CRUD pages
+├── practice/[id]/       — Live typing practice screen
+├── progress/            — Session history and stats
+└── page.tsx             — Home dashboard
+
+src/                     — Clean architecture layers
+├── domain/              — Pure business logic (types, calculations)
+├── core/actions/        — Server actions (orchestration)
+├── infrastructure/      — Database adapter
+└── ui/components/       — Reusable React components
+
+prisma/                  — Database schema, migrations, seed data
+docs/reports/            — Agentic benchmark report
+```
 
 ## Setup Instructions
 
-### 1. Prerequisites
-- **Node.js**: v20 or higher is recommended.
+### Prerequisites
+
+- **Node.js**: v22 or higher recommended (v20 works with build workarounds)
 - **npm** (comes with Node.js)
 
-### 2. Install Dependencies
-Clone the repository and install npm packages:
+### Quick Start
+
 ```bash
+# 1. Install dependencies
 npm install
-```
 
-### 3. Environment Variables
-Create a `.env` file in the root directory (if not already present):
-```env
-DATABASE_URL="file:./dev.db"
-```
+# 2. Set up environment
+# Create .env with: DATABASE_URL="file:./dev.db"
 
-### 4. Database Setup & Migrations
-Sync the SQLite database schema and run the migrations:
-```bash
+# 3. Generate Prisma client
+npx prisma generate
+
+# 4. Run database migrations
 npx prisma migrate dev
-```
 
-### 5. Seed the Database
-Populate starter beginner-level typing lessons:
-```bash
-npx tsx prisma/seed.ts
-```
+# 5. Seed starter lessons
+npm run seed
 
-### 6. Run the Development Server
-Start the Next.js development server:
-```bash
+# 6. Start development server
 npm run dev
 ```
-Open [http://localhost:3000](http://localhost:3000) in your web browser.
+
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## Build and Check Commands
 
-- **Production Build**: Compiles Next.js for production deployment.
-  ```bash
-  npm run build
-  ```
-- **Type Check**: Validates TypeScript code type-safety.
-  ```bash
-  npx tsc --noEmit
-  ```
-- **Code Lint**: Scans for patterns and syntax recommendations.
-  ```bash
-  npm run lint
-  ```
+| Command | Purpose |
+|---------|---------|
+| `npm run dev` | Start development server |
+| `npm run build` | Production build |
+| `npm run start` | Start production server |
+| `npm run lint` | Run ESLint |
+| `npm run typecheck` | TypeScript type check |
+| `npm run seed` | Seed database with starter lessons |
+| `npm run db:migrate` | Apply Prisma migrations |
+| `npm run db:generate` | Regenerate Prisma client |
+
+## Pedagogical Design
+
+- **Accuracy-first**: Pass a lesson by reaching 90%+ accuracy. Speed follows naturally.
+- **Sequential progression**: Each lesson unlocks the next, providing a clear learning path.
+- **Weak-key coaching**: After every session, see which keys were missed most and get specific finger-placement advice.
+- **Smart recommendations**: The dashboard adapts — suggesting repeats for low accuracy, new lessons for strong performance, or weak-area focus practice.
+- **Supportive tone**: Coaching emphasizes "accuracy matters more than speed" and never shames the learner.
+
+## Benchmark Note
+
+This application was developed autonomously by an AI agent as part of a long-horizon agentic benchmark. See [docs/reports/typingjoy-agentic-benchmark.md](docs/reports/typingjoy-agentic-benchmark.md) for the full benchmark report.
 
 ## Known Limitations
 
-- **Browser Context**: Desktop keyboard touch typing is first-class. Real-time visual keystroke detection relies on keyboard events, which are not suitable for mobile virtual/on-screen keyboards.
+- **Desktop keyboard required**: Real-time keystroke tracking relies on physical keyboard events. Mobile virtual keyboards are not supported.
+- **Single-user**: No authentication or multi-user support. Designed as a personal tool.
+- **Node version sensitivity**: Next.js 16 targets Node 22+. Using Node 20 may require `npm rebuild better-sqlite3 --build-from-source`.

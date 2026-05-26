@@ -1,33 +1,45 @@
 @import 'tailwindcss';
 
 body {
-  background: linear-gradient(135deg, #fff7ed, #fffbeb, #f5f5f4);
+  background:
+    linear-gradient(135deg, #fff7ed 0%, #fffbeb 46%, #f8fafc 100%);
   min-height: 100vh;
-}
-
-@keyframes float {
-  0%, 100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-8px);
-  }
-}
-
-.float-animation {
-  animation: float 3s ease-in-out infinite;
+  color: #292524;
 }
 
 .char-correct {
-  @apply text-green-600 bg-green-50;
+  @apply text-emerald-700 bg-emerald-50;
 }
 
 .char-incorrect {
-  @apply text-red-600 bg-red-50 underline decoration-red-500;
+  @apply text-red-700 bg-red-50 border-b-2 border-red-600;
 }
 
 .char-current {
-  @apply text-amber-600 bg-amber-50 border-b-2 border-amber-500;
+  @apply text-stone-950 bg-amber-200 outline outline-2 outline-amber-700;
+}
+
+.typing-surface {
+  overflow-wrap: anywhere;
+}
+
+.char-token {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0.72ch;
+  min-height: 1.45em;
+  border-radius: 0.2rem;
+}
+
+.char-status {
+  position: absolute;
+  top: -0.75em;
+  right: -0.1em;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.62rem;
+  line-height: 1;
 }
 
 /* Custom scrollbar styling */
@@ -53,7 +65,17 @@ body {
 input:focus,
 textarea:focus,
 select:focus {
-  @apply ring-2 ring-amber-400 ring-offset-2 outline-none;
+  @apply ring-2 ring-amber-600 ring-offset-2 outline-none;
+}
+
+/* Global Keyboard Focus Highlights */
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible,
+[role="button"]:focus-visible {
+  outline: 3px solid #b45309;
+  outline-offset: 3px;
+  border-radius: 4px;
 }
 
 /* Utility classes */
@@ -68,13 +90,13 @@ select:focus {
 
 .warm-button {
   @apply bg-amber-600 text-white px-6 py-2.5 rounded-lg font-medium
-         hover:bg-amber-700 active:bg-amber-800
+         hover:bg-amber-700 active:bg-amber-800 active:scale-[0.985]
          transition-all duration-150 shadow-sm hover:shadow-md;
 }
 
 .warm-button-secondary {
   @apply bg-amber-50 text-amber-700 px-6 py-2.5 rounded-lg font-medium
-         border border-amber-200 hover:bg-amber-100 active:bg-amber-200
+         border border-amber-200 hover:bg-amber-100 active:bg-amber-200 active:scale-[0.985]
          transition-all duration-150;
 }
 

@@ -2,14 +2,14 @@
 'use client';
 
 import CustomTextForm from '@/src/ui/components/CustomTextForm';
+import { CustomPracticeText } from '@/src/domain/types';
 
 export default function EditCustomTextWrapper({
   textId,
   initialData,
 }: {
   textId: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  initialData: any;
+  initialData: CustomPracticeText;
 }) {
   return (
     <CustomTextForm
